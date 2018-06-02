@@ -24,7 +24,25 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	//   x, y, theta and their uncertainties from GPS) and all weights to 1. 
 	// Add random Gaussian noise to each particle.
 	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
+	num_particles = 10;
+	default_random_engine gen;
+	
+	// This line creates a normal (Gaussian) distribution for x.
+	normal_distribution<double> dist_x(x, std[0]);
+    normal_distribution<double> dist_y(y, std[1]);
+    normal_distribution<double> dist_t(theta, std[2]);
 
+	for (int i = 0; i < num_particles; i++)
+	{
+		Particle particle;
+		particle.id = i;
+		particle.x = dist_x(gen);
+		particle.y =  dist_y(gen);
+		particle.theta = dist_t(gen);
+		particle.weight = 1.0;
+		particles.push_back(particle);
+	}
+	is_initialized = true;
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate) {
@@ -32,6 +50,35 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	// NOTE: When adding noise you may find std::normal_distribution and std::default_random_engine useful.
 	//  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
+	default_random_engine gen;
+	for (int i = 0; i<num_particles; i++)
+	{
+		double x = particles[i].x;
+		double y = particles[i].y;
+		double theta = particles[i].theta;
+		if (fabs(yaw_rate) < 0.0001)
+		{
+			x = x + velocity*cos(theta)*delta_t;
+			y = y + velocity*sin(theta)*delta_t;
+		}
+		else
+		{
+			x = x + velocity/yaw_rate*(sin(theta+yaw_rate*delta_t)-sin(theta));
+			y = y + velocity/yaw_rate*(-cos(theta+yaw_rate*delta_t)+cos(theta));
+			theta = theta + yaw_rate*delta_t;
+		}
+		normal_distribution<double> dist_x(x, std_pos[0]);
+		normal_distribution<double> dist_y(y, std_pos[1]);
+		normal_distribution<double> dist_t(theta, std_pos[2]);
+		x = dist_x(gen);
+		y = dist_y(gen);
+		theta = dist_t(gen);
+		particles[i].x = x;
+		particles[i].y = y;
+		theta = atan2(sin(theta),cos(theta));
+		particles[i].theta = theta;
+	}
+	
 
 }
 
