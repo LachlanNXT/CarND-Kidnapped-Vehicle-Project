@@ -24,7 +24,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	//   x, y, theta and their uncertainties from GPS) and all weights to 1. 
 	// Add random Gaussian noise to each particle.
 	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
-	num_particles = 10;
+	num_particles = 20;
 	default_random_engine gen;
 	
 	// This line creates a normal (Gaussian) distribution for x.
@@ -87,7 +87,7 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 	//   implement this method and use it as a helper during the updateWeights phase.
 	for (int i = 0; i<observations.size(); i++)
 	{
-		double mindist = 999;
+		double mindist = 999.0;
 		int label = -1;
 		for (int j = 0; j<predicted.size(); j++)
 		{
